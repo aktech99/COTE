@@ -46,52 +46,56 @@ class _StudentHomeState extends State<StudentHome> {
     super.dispose();
   }
 
-  Widget buildVideo(String url, int index) {
-    // Check if controller already exists
-    if (index >= _controllers.length) {
-      final controller = VideoPlayerController.network(url);
-      _controllers.add(controller);
-      controller.initialize().then((_) {
-        // Only play the current video
-        if (index == _currentIndex) {
-          controller.play();
-        }
-        controller.setLooping(true);
-        // Force refresh to show the video
-        if (mounted) setState(() {});
-      });
-    }
+Widget buildVideo(String url, int index) {
+  // Check if controller already exists
+  if (index >= _controllers.length) {
+    final controller = VideoPlayerController.network(url);
+    _controllers.add(controller);
+    controller.initialize().then((_) {
+      // Only play the current video
+      if (index == _currentIndex) {
+        controller.play();
+      }
+      controller.setLooping(true);
+      // Force refresh to show the video
+      if (mounted) setState(() {});
+    }).catchError((e) {
+      // Handle any initialization errors
+      print('Error initializing video: $e');
+    });
+  }
 
-    final controller = _controllers[index];
-    
-    return controller.value.isInitialized
-        ? GestureDetector(
-            onTap: () {
-              setState(() {
-                controller.value.isPlaying
-                    ? controller.pause()
-                    : controller.play();
-              });
-            },
-            child: Container(
-              color: Colors.black,
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: 9 / 16, // Fixed aspect ratio like Instagram Reels
-                  child: FittedBox(
-                    fit: BoxFit.cover,
-                    child: SizedBox(
-                      width: controller.value.size.width,
-                      height: controller.value.size.height,
-                      child: VideoPlayer(controller),
-                    ),
+  final controller = _controllers[index];
+  
+  return controller.value.isInitialized
+      ? GestureDetector(
+          onTap: () {
+            setState(() {
+              controller.value.isPlaying
+                  ? controller.pause()
+                  : controller.play();
+            });
+          },
+          child: Container(
+            color: Colors.black,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: controller.value.aspectRatio, // Use native aspect ratio
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: controller.value.size.width,
+                    height: controller.value.size.height,
+                    child: VideoPlayer(controller),
                   ),
                 ),
               ),
             ),
-          )
-        : const Center(child: CircularProgressIndicator(color: Colors.white));
-  }
+          ),
+        )
+      : const Center(child: CircularProgressIndicator(color: Colors.white));
+}
+
 
   @override
   Widget build(BuildContext context) {
