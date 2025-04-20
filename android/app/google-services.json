@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "614234084413",
+    "project_id": "slms-3efb7",
+    "storage_bucket": "slms-3efb7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:614234084413:android:ad79b2f74b82bc3e080654",
+        "android_client_info": {
+          "package_name": "com.example.cote"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzbXGkbfVOHr2EjXUil-4rlqpubTAwQtc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
