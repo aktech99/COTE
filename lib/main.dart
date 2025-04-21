@@ -1,3 +1,5 @@
+import 'package:cote/screens/PlaceholdeScreen.dart';
+import 'package:cote/screens/StudentDashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -34,6 +36,9 @@ class MyApp extends StatelessWidget {
         '/studentHome': (context) => StudentHome(),
         '/teacherHome': (context) => TeacherHome(),
         '/subjectSelection': (context) => SubjectSelectionScreen(role: 'student'),
+        '/studentDashboard': (context) => const StudentDashboard(),
+        '/studentNotes': (context) => const PlaceholderScreen(title: "Notes Page"), // Replace with your actual Notes page
+        '/quizBattle': (context) => const PlaceholderScreen(title: "Quiz Battle Page"), // Replace with real screen later
       },
     );
   }

@@ -36,8 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final role = doc.data()?['role'];
 
     if (role == 'student') {
-      Navigator.pushReplacementNamed(context, '/studentHome');
-    } else if (role == 'teacher') {
+  Navigator.pushReplacementNamed(context, '/studentDashboard');
+} else if (role == 'teacher') {
       Navigator.pushReplacementNamed(context, '/teacherHome');
     } else {
       throw Exception("Role missing or invalid");
