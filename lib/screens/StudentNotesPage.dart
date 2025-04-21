@@ -2,6 +2,7 @@ import 'package:cote/screens/PDFViewerPage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cote/screens/ExtractTextPage.dart'; // Import the new page for text extraction
 
 class StudentNotesPage extends StatelessWidget {
   const StudentNotesPage({super.key});
@@ -34,6 +35,16 @@ class StudentNotesPage extends StatelessWidget {
 
               return ListTile(
                 title: Text(title),
+                subtitle: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("View Notes"),
+                    ElevatedButton(
+                      onPressed: () => _generateQuiz(context, url), // Button to trigger quiz generation
+                      child: const Text("Generate Quiz"),
+                    ),
+                  ],
+                ),
                 onTap: () => _viewPDF(context, url),
               );
             },
@@ -49,6 +60,16 @@ class StudentNotesPage extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => PDFViewerPage(url: url),
+      ),
+    );
+  }
+
+  // Function to navigate to the ExtractTextPage
+  void _generateQuiz(BuildContext context, String url) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExtractTextPage(url: url), // Pass the PDF URL to the next page
       ),
     );
   }

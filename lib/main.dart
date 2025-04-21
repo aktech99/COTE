@@ -10,10 +10,9 @@ import 'screens/register_screen.dart';
 import 'screens/student_home.dart';
 import 'screens/TeacherHome.dart';
 import 'screens/subject_selection_screen.dart';
-import 'screens/TeacherNotesPage.dart'; 
-import 'screens/StudentNotesPage.dart'; 
-import 'screens/StudentQuizPage.dart';
-
+import 'screens/TeacherNotesPage.dart';
+import 'screens/StudentNotesPage.dart';
+import 'screens/ExtractTextPage.dart'; // Import the ExtractTextPage where text extraction happens.
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,8 +42,9 @@ class MyApp extends StatelessWidget {
         '/StudentNotesPage': (context) => const StudentNotesPage(),
         '/StudentQuizPage': (context) => const StudentQuizPage(),
         '/TeacherHome': (context) => const TeacherHome(),
-        '/TeacherNotesPage': (context) => const TeacherNotesPage(), // <-- ADD THIS
+        '/TeacherNotesPage': (context) => const TeacherNotesPage(),
         '/subject_selection_screen': (context) => SubjectSelectionScreen(role: 'student'),
+        '/ExtractTextPage': (context) => ExtractTextPage(url: ''), // Added this route to navigate to text extraction page
       },
     );
   }
