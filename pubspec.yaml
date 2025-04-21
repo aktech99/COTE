@@ -22,6 +22,7 @@ dependencies:
 
   # Firebase Storage
   firebase_storage: ^11.6.6
+  google_generative_ai: ^0.2.0 
 
   # For picking videos (teachers upload shorts)
   image_picker: ^1.0.7
