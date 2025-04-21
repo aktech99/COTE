@@ -49,6 +49,10 @@ dependencies:
 
   # For previewing videos (students see shorts)
    video_player: ^2.7.2
+   file_selector: ^0.9.3
+   flutter_pdfview: ^1.0.0
+   path_provider: ^2.1.1
+   http: ^0.13.6
 
 
 dev_dependencies:

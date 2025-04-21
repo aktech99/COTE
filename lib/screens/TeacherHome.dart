@@ -86,6 +86,13 @@ class _TeacherHomeState extends State<TeacherHome> {
               onPressed: isUploading ? null : _pickAndUploadVideo,
               child: Text(isUploading ? 'Uploading...' : 'Upload Video'),
             ),
+            ElevatedButton(
+  onPressed: () {
+    Navigator.pushNamed(context, '/TeacherNotesPage');
+  },
+  child: const Text('Upload Notes'),
+),
+
             const SizedBox(height: 16),
             if (videoUrl != null) Text('Uploaded: $videoUrl'),
           ],

@@ -17,19 +17,19 @@ class StudentDashboard extends StatelessWidget {
             DashboardButton(
               label: "Shorts",
               icon: Icons.video_library,
-              onTap: () => Navigator.pushNamed(context, '/studentHome'),
+              onTap: () => Navigator.pushNamed(context, '/student_home'),
             ),
             const SizedBox(height: 20),
             DashboardButton(
               label: "Notes",
               icon: Icons.notes,
-              onTap: () => Navigator.pushNamed(context, '/studentNotes'),
+              onTap: () => Navigator.pushNamed(context, '/StudentNotesPage'),
             ),
             const SizedBox(height: 20),
             DashboardButton(
               label: "Quiz Battle",
               icon: Icons.sports_esports,
-              onTap: () => Navigator.pushNamed(context, '/quizBattle'),
+              onTap: () => Navigator.pushNamed(context, '/StudentQuizPage'),
             ),
           ],
         ),

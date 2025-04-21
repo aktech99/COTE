@@ -35,10 +35,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final doc = await firestore.collection('users').doc(uid).get();
     final role = doc.data()?['role'];
 
-    if (role == 'student') {
-  Navigator.pushReplacementNamed(context, '/studentDashboard');
-} else if (role == 'teacher') {
-      Navigator.pushReplacementNamed(context, '/teacherHome');
+     if (role == 'student') {
+  Navigator.pushReplacementNamed(context, '/StudentDashboard');
+}
+     else if (role == 'teacher') {
+      Navigator.pushReplacementNamed(context, '/TeacherHome');
     } else {
       throw Exception("Role missing or invalid");
     }

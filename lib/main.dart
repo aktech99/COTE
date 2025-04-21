@@ -1,5 +1,6 @@
-import 'package:cote/screens/PlaceholdeScreen.dart';
 import 'package:cote/screens/StudentDashboard.dart';
+import 'package:cote/screens/StudentQuizPage.dart';
+import 'package:cote/screens/TeacherHome.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -7,8 +8,12 @@ import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/student_home.dart';
-import 'screens/teacher_home.dart';
+import 'screens/TeacherHome.dart';
 import 'screens/subject_selection_screen.dart';
+import 'screens/TeacherNotesPage.dart'; 
+import 'screens/StudentNotesPage.dart'; 
+import 'screens/StudentQuizPage.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,12 +38,13 @@ class MyApp extends StatelessWidget {
         '/welcome': (context) => WelcomeScreen(),
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
-        '/studentHome': (context) => StudentHome(),
-        '/teacherHome': (context) => TeacherHome(),
-        '/subjectSelection': (context) => SubjectSelectionScreen(role: 'student'),
-        '/studentDashboard': (context) => const StudentDashboard(),
-        '/studentNotes': (context) => const PlaceholderScreen(title: "Notes Page"), // Replace with your actual Notes page
-        '/quizBattle': (context) => const PlaceholderScreen(title: "Quiz Battle Page"), // Replace with real screen later
+        '/StudentDashboard': (context) => const StudentDashboard(),
+        '/student_home': (context) => const StudentHome(),
+        '/StudentNotesPage': (context) => const StudentNotesPage(),
+        '/StudentQuizPage': (context) => const StudentQuizPage(),
+        '/TeacherHome': (context) => const TeacherHome(),
+        '/TeacherNotesPage': (context) => const TeacherNotesPage(), // <-- ADD THIS
+        '/subject_selection_screen': (context) => SubjectSelectionScreen(role: 'student'),
       },
     );
   }
