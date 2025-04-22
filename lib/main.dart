@@ -1,6 +1,3 @@
-import 'package:cote/screens/StudentDashboard.dart';
-import 'package:cote/screens/StudentQuizPage.dart';
-import 'package:cote/screens/TeacherHome.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -8,11 +5,15 @@ import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/student_home.dart';
+import 'screens/StudentDashboard.dart';
 import 'screens/TeacherHome.dart';
 import 'screens/subject_selection_screen.dart';
 import 'screens/TeacherNotesPage.dart';
 import 'screens/StudentNotesPage.dart';
-import 'screens/ExtractTextPage.dart'; // Import the ExtractTextPage where text extraction happens.
+import 'screens/StudentQuizPage.dart';
+import 'screens/ExtractTextPage.dart';
+import 'screens/profile_screen.dart'; // ✅ NEW
+import 'screens/bookmarks_screen.dart'; // ✅ NEW
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,7 +45,9 @@ class MyApp extends StatelessWidget {
         '/TeacherHome': (context) => const TeacherHome(),
         '/TeacherNotesPage': (context) => const TeacherNotesPage(),
         '/subject_selection_screen': (context) => SubjectSelectionScreen(role: 'student'),
-        '/ExtractTextPage': (context) => ExtractTextPage(url: ''), // Added this route to navigate to text extraction page
+        '/ExtractTextPage': (context) => ExtractTextPage(url: ''),
+        '/profile': (context) => const ProfileScreen(), // ✅ new
+        '/bookmarks': (context) => const BookmarksScreen(), // ✅ new
       },
     );
   }
