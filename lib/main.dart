@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'screens/splash_screen.dart'; // ✅ New splash screen
 import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
@@ -12,8 +13,8 @@ import 'screens/TeacherNotesPage.dart';
 import 'screens/StudentNotesPage.dart';
 import 'screens/StudentQuizPage.dart';
 import 'screens/ExtractTextPage.dart';
-import 'screens/profile_screen.dart'; // ✅ NEW
-import 'screens/bookmarks_screen.dart'; // ✅ NEW
+import 'screens/profile_screen.dart';
+import 'screens/bookmarks_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,8 +34,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      initialRoute: '/welcome',
+      initialRoute: '/', // ✅ Start from splash
       routes: {
+        '/': (context) => const SplashScreen(), // ✅ Splash screen checks login & role
         '/welcome': (context) => WelcomeScreen(),
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
@@ -46,8 +48,8 @@ class MyApp extends StatelessWidget {
         '/TeacherNotesPage': (context) => const TeacherNotesPage(),
         '/subject_selection_screen': (context) => SubjectSelectionScreen(role: 'student'),
         '/ExtractTextPage': (context) => ExtractTextPage(url: ''),
-        '/profile': (context) => const ProfileScreen(), // ✅ new
-        '/bookmarks': (context) => const BookmarksScreen(), // ✅ new
+        '/profile': (context) => const ProfileScreen(),
+        '/bookmarks': (context) => const BookmarksScreen(),
       },
     );
   }
