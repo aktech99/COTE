@@ -29,8 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -42,11 +41,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
         databaseId: "cote", // 🔥 your custom Firestore DB ID
       );
 
-      await firestore.collection('users').doc(uid).set({
+      // Create role-based profile in Firestore
+      Map<String, dynamic> profileData = {
+        'uid': uid,
         'email': _emailController.text.trim(),
         'role': _selectedRole,
         'subjects': [],
-      });
+        'bookmarks': {
+          'shorts': [],
+          'notes': [],
+        },
+        'registrationDate': Timestamp.now(),
+        'lastActiveDate': Timestamp.now(),
+      };
+
+      if (_selectedRole == 'student') {
+        profileData.addAll({
+          'quizRating': 1200,
+          'quizBattlesPlayed': 0,
+          'quizBattlesWon': 0,
+          'quizBattlesLost': 0,
+          'totalMCQsAnswered': 0,
+          'correctAnswersCount': 0,
+          'totalPointsEarned': 0,
+          'currentBattleId': null,
+          'lastQuizNoteId': null,
+        });
+      }
+
+      await firestore.collection('users').doc(uid).set(profileData);
 
       Navigator.pushReplacement(
         context,

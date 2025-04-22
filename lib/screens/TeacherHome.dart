@@ -33,7 +33,6 @@ class _TeacherHomeState extends State<TeacherHome> {
       await ref.putFile(file);
       final url = await ref.getDownloadURL();
 
-      // ✅ Use proper Firestore instance for databaseId "cote"
       final db = FirebaseFirestore.instanceFor(
         app: Firebase.app(),
         databaseId: "cote",
@@ -73,9 +72,13 @@ class _TeacherHomeState extends State<TeacherHome> {
         title: const Text('Teacher Home'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: logout,
-          )
+          ),
         ],
       ),
       body: Padding(
@@ -87,12 +90,11 @@ class _TeacherHomeState extends State<TeacherHome> {
               child: Text(isUploading ? 'Uploading...' : 'Upload Video'),
             ),
             ElevatedButton(
-  onPressed: () {
-    Navigator.pushNamed(context, '/TeacherNotesPage');
-  },
-  child: const Text('Upload Notes'),
-),
-
+              onPressed: () {
+                Navigator.pushNamed(context, '/TeacherNotesPage');
+              },
+              child: const Text('Upload Notes'),
+            ),
             const SizedBox(height: 16),
             if (videoUrl != null) Text('Uploaded: $videoUrl'),
           ],

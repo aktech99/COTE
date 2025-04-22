@@ -31,6 +31,18 @@ class StudentDashboard extends StatelessWidget {
               icon: Icons.sports_esports,
               onTap: () => Navigator.pushNamed(context, '/StudentQuizPage'),
             ),
+            const SizedBox(height: 20),
+            DashboardButton(
+              label: "Bookmarks",
+              icon: Icons.bookmark,
+              onTap: () => Navigator.pushNamed(context, '/bookmarks'),
+            ),
+            const SizedBox(height: 20),
+            DashboardButton(
+              label: "Profile",
+              icon: Icons.person,
+              onTap: () => Navigator.pushNamed(context, '/profile'),
+            ),
           ],
         ),
       ),
