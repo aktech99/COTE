@@ -2,100 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:video_player/video_player.dart';
+import 'ShortViewerPage.dart'; // Create this page if not already
 
-class StudentHome extends StatefulWidget {
+class StudentHome extends StatelessWidget {
   const StudentHome({super.key});
-
-  @override
-  State<StudentHome> createState() => _StudentHomeState();
-}
-
-class _StudentHomeState extends State<StudentHome> {
-  final List<VideoPlayerController> _controllers = [];
-  int _currentIndex = 0;
-  final PageController _pageController = PageController();
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController.addListener(_onPageChanged);
-  }
-
-  void _onPageChanged() {
-    final newIndex = _pageController.page?.round() ?? 0;
-    if (newIndex != _currentIndex && newIndex < _controllers.length) {
-      setState(() {
-        // Pause the previous video
-        if (_currentIndex < _controllers.length) {
-          _controllers[_currentIndex].pause();
-        }
-        // Play the current video
-        _currentIndex = newIndex;
-        _controllers[_currentIndex].play();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    for (final controller in _controllers) {
-      controller.dispose();
-    }
-    _pageController.removeListener(_onPageChanged);
-    _pageController.dispose();
-    super.dispose();
-  }
-
-Widget buildVideo(String url, int index) {
-  // Check if controller already exists
-  if (index >= _controllers.length) {
-    final controller = VideoPlayerController.network(url);
-    _controllers.add(controller);
-    controller.initialize().then((_) {
-      // Only play the current video
-      if (index == _currentIndex) {
-        controller.play();
-      }
-      controller.setLooping(true);
-      // Force refresh to show the video
-      if (mounted) setState(() {});
-    }).catchError((e) {
-      // Handle any initialization errors
-      print('Error initializing video: $e');
-    });
-  }
-
-  final controller = _controllers[index];
-  
-  return controller.value.isInitialized
-      ? GestureDetector(
-          onTap: () {
-            setState(() {
-              controller.value.isPlaying
-                  ? controller.pause()
-                  : controller.play();
-            });
-          },
-          child: Container(
-            color: Colors.black,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: controller.value.aspectRatio, // Use native aspect ratio
-                child: FittedBox(
-                  fit: BoxFit.cover,
-                  child: SizedBox(
-                    width: controller.value.size.width,
-                    height: controller.value.size.height,
-                    child: VideoPlayer(controller),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        )
-      : const Center(child: CircularProgressIndicator(color: Colors.white));
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -105,32 +15,96 @@ Widget buildVideo(String url, int index) {
     );
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text("Student Shorts"),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text("Student Shorts")),
       body: StreamBuilder(
         stream: db.collection('shorts').snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator(color: Colors.white));
+            return const Center(child: CircularProgressIndicator());
           }
 
           final docs = snapshot.data!.docs;
-          return PageView.builder(
-            scrollDirection: Axis.vertical,
-            controller: _pageController,
+
+          return GridView.builder(
+            padding: const EdgeInsets.all(10),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, // 2 per row
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+            ),
             itemCount: docs.length,
             itemBuilder: (context, index) {
               final url = docs[index]['url'];
-              return buildVideo(url, index);
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ShortViewerPage(
+                        initialIndex: index,
+                        docs: docs,
+                      ),
+                    ),
+                  );
+                },
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    VideoPlayerPreview(videoUrl: url),
+                    const Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Icon(Icons.play_circle_fill, color: Colors.white, size: 32),
+                      ),
+                    ),
+                  ],
+                ),
+              );
             },
           );
         },
       ),
     );
+  }
+}
+
+class VideoPlayerPreview extends StatefulWidget {
+  final String videoUrl;
+
+  const VideoPlayerPreview({super.key, required this.videoUrl});
+
+  @override
+  State<VideoPlayerPreview> createState() => _VideoPlayerPreviewState();
+}
+
+class _VideoPlayerPreviewState extends State<VideoPlayerPreview> {
+  late VideoPlayerController _controller;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(widget.videoUrl)
+      ..initialize().then((_) {
+        setState(() => _isInitialized = true);
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isInitialized
+        ? ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: VideoPlayer(_controller),
+          )
+        : const Center(child: CircularProgressIndicator());
   }
 }

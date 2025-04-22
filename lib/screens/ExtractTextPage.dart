@@ -341,7 +341,7 @@ class ResultScreen extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                Navigator.popUntil(context, ModalRoute.withName('/student_home'));
+                Navigator.popUntil(context, ModalRoute.withName('/StudentDashboard'));
               },
               child: const Text("Go Back to Dashboard"),
             ),
