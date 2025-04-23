@@ -46,7 +46,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
 
       Navigator.pushReplacementNamed(
         context,
-        widget.role == "teacher" ? '/teacherHome' : '/studentHome',
+        widget.role == "teacher" ? '/TeacherHome' : '/StudentDashboard',
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

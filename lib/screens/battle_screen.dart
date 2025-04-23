@@ -10,6 +10,7 @@ import 'package:pdfx/pdfx.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'result_screen.dart';
 
+
 class BattleScreen extends StatefulWidget {
   final String noteId;
   final String noteUrl;
