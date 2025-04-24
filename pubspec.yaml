@@ -32,6 +32,7 @@ dependencies:
   file_selector: ^0.9.3
   flutter_pdfview: ^1.0.0
   path_provider: ^2.1.1
+  cached_network_image: ^3.2.3
 
   # HTTP package to ensure compatibility with googleapis_auth
   http: ^1.0.0
