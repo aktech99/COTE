@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'result_screen.dart'; // Replace with actual path to ResultScreen.dart
 
 class ExtractTextPage extends StatefulWidget {
   final String url;
@@ -147,21 +148,26 @@ class _ExtractTextPageState extends State<ExtractTextPage> {
   }
 
   void _submitQuiz() {
-    int score = 0;
+    // Prepare result data in the format ResultScreen expects
+    List<Map<String, dynamic>> result = [];
+    
     for (int i = 0; i < generatedQuestions.length; i++) {
-      if (selectedAnswers[i] == generatedQuestions[i]['correctAnswer']) {
-        score++;
-      }
+      result.add({
+        'question': generatedQuestions[i]['question'],
+        'options': generatedQuestions[i]['options'],
+        'selectedAnswer': selectedAnswers[i],
+        'correctAnswer': generatedQuestions[i]['correctAnswer'],
+      });
     }
 
-    // Navigate back to StudentDashboard with score
-    Navigator.pushNamedAndRemoveUntil(
+    // Navigate to ResultScreen
+    Navigator.push(
       context,
-      '/StudentDashboard',
-      (route) => false,
-      arguments: {'score': score, 'total': generatedQuestions.length},
+      MaterialPageRoute(
+        builder: (context) => ResultScreen(result: result),
+      ),
     );
-  }
+}
 
   @override
   Widget build(BuildContext context) {

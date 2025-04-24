@@ -1,73 +1,63 @@
 name: cote
-description: "A new Flutter project."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+description: A new Flutter project.
+
+publish_to: 'none'
 
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.7.2
+  sdk: '>=3.0.6 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
+  flutter_cache_manager: ^3.3.1  # Move this to the same level as other dependencies
 
-  # Firebase Core
-  firebase_core: ^2.25.4
+  # Core
+  cupertino_icons: ^1.0.2
 
-  # Firebase Auth
-  firebase_auth: ^4.17.4
+  # Firebase Services
+  firebase_core: ^2.15.1
+  cloud_firestore: ^4.9.1
+  firebase_auth: ^4.9.0
+  firebase_storage: ^11.2.6
 
-  # Cloud Firestore
-  cloud_firestore: ^4.15.4
+  # Authentication
+  google_sign_in: ^6.1.5
 
-  # Firebase Storage
-  firebase_storage: ^11.6.6
-  google_generative_ai: ^0.2.0 
+  # State Management
+  provider: ^6.0.5
+  shared_preferences: ^2.2.1
 
-  # For picking videos (teachers upload shorts)
-  image_picker: ^1.0.7
-
-  # For previewing videos (students see shorts)
-  video_player: ^2.7.0
-  file_selector: ^0.9.3
-  flutter_pdfview: ^1.0.0
+  # PDF & Document Handling
+  flutter_pdfview: ^1.3.1
   path_provider: ^2.1.1
+  pdfx: ^2.4.0
+  googleapis: ^11.4.0
+  googleapis_auth: ^1.4.1
   cached_network_image: ^3.2.3
 
-  # HTTP package to ensure compatibility with googleapis_auth
-  http: ^1.0.0
+  # Network
+  http: ^1.1.0
 
-  # Google APIs
-  googleapis: ^14.0.0   # Upgrade to this version
-  googleapis_auth: ^1.5.0  # Compatible version for googleapis
+  # UI Components
+  shimmer: ^3.0.0
 
-  # PDF handling
-  pdf: ^3.6.0
-  pdfx: ^2.3.0
+  # Video & Media
+  video_player: ^2.7.1
+  image_picker: ^1.0.4
+  file_selector: ^1.0.1
+
+  # AI & Text Processing
+  google_generative_ai: ^0.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # Lints for Flutter projects
-  flutter_lints: ^5.0.0
+  flutter_lints: ^2.0.0
 
 flutter:
   uses-material-design: true
 
-  # Uncomment this section to add assets for your app.
   assets:
-    - assets/service_account.json  # Add the service account file here
-
-  # Fonts (if any)
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
+    - assets/images/
