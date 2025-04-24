@@ -1,8 +1,10 @@
+// student_home.dart
+import 'package:cote/screens/ShortViewerPage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:video_player/video_player.dart';
-import 'ShortViewerPage.dart'; // Create this page if not already
+import 'package:cached_network_image/cached_network_image.dart';
+import 'ShortViewerPage.dart';
 
 class StudentHome extends StatelessWidget {
   const StudentHome({super.key});
@@ -15,7 +17,10 @@ class StudentHome extends StatelessWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Student Shorts")),
+      appBar: AppBar(
+        title: const Text("Student Shorts"),
+        elevation: 0,
+      ),
       body: StreamBuilder(
         stream: db.collection('shorts').snapshots(),
         builder: (context, snapshot) {
@@ -24,17 +29,30 @@ class StudentHome extends StatelessWidget {
           }
 
           final docs = snapshot.data!.docs;
+          
+          // Debug print
+          print('Number of shorts found: ${docs.length}');
+          for (var doc in docs) {
+            final data = doc.data();
+            print('Short data:');
+            print('Video URL: ${data['url']}');
+            print('Thumbnail URL: ${data['thumbnailUrl']}');
+            print('Description: ${data['description']}');
+          }
 
           return GridView.builder(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // 2 per row
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+              crossAxisCount: 2,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 9/16, // Vertical video aspect ratio
             ),
             itemCount: docs.length,
             itemBuilder: (context, index) {
-              final url = docs[index]['url'];
+              final data = docs[index].data() as Map<String, dynamic>;
+              final thumbnailUrl = data['thumbnailUrl'] as String?;
+              final description = data['description'] as String? ?? '';
 
               return GestureDetector(
                 onTap: () {
@@ -48,18 +66,102 @@ class StudentHome extends StatelessWidget {
                     ),
                   );
                 },
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    VideoPlayerPreview(videoUrl: url),
-                    const Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Icon(Icons.play_circle_fill, color: Colors.white, size: 32),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
                       ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Thumbnail
+                        thumbnailUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl: thumbnailUrl,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  color: Colors.grey[900],
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  color: Colors.grey[800],
+                                  child: const Icon(
+                                    Icons.video_library,
+                                    color: Colors.white60,
+                                    size: 40,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                color: Colors.grey[800],
+                                child: const Icon(
+                                  Icons.video_library,
+                                  color: Colors.white60,
+                                  size: 40,
+                                ),
+                              ),
+
+                        // Gradient overlay
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.7),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Play icon
+                        const Center(
+                          child: Icon(
+                            Icons.play_circle_outline,
+                            size: 48,
+                            color: Colors.white70,
+                          ),
+                        ),
+
+                        // Description
+                        if (description.isNotEmpty)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                description,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               );
             },
@@ -67,44 +169,5 @@ class StudentHome extends StatelessWidget {
         },
       ),
     );
-  }
-}
-
-class VideoPlayerPreview extends StatefulWidget {
-  final String videoUrl;
-
-  const VideoPlayerPreview({super.key, required this.videoUrl});
-
-  @override
-  State<VideoPlayerPreview> createState() => _VideoPlayerPreviewState();
-}
-
-class _VideoPlayerPreviewState extends State<VideoPlayerPreview> {
-  late VideoPlayerController _controller;
-  bool _isInitialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.network(widget.videoUrl)
-      ..initialize().then((_) {
-        setState(() => _isInitialized = true);
-      });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _isInitialized
-        ? ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: VideoPlayer(_controller),
-          )
-        : const Center(child: CircularProgressIndicator());
   }
 }

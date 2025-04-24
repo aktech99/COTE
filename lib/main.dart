@@ -1,3 +1,4 @@
+import 'package:cote/screens/teacher_shorts_upload.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -50,6 +51,7 @@ class MyApp extends StatelessWidget {
         '/ExtractTextPage': (context) => ExtractTextPage(url: ''),
         '/profile': (context) => const ProfileScreen(),
         '/bookmarks': (context) => const BookmarksScreen(),
+        '/uploadShort': (context) => const TeacherShortsUpload(),
       },
     );
   }
