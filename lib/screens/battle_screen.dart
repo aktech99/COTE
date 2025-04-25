@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'result_screen.dart';
@@ -9,14 +10,18 @@ class BattleScreen extends StatefulWidget {
   final String noteId;
   final String noteUrl;
   final String teamCode;
+  final String battleId;
   final DateTime startTime;
+  final List<Map<String, dynamic>>? preGeneratedQuestions;
 
   const BattleScreen({
     super.key,
     required this.noteId,
     required this.noteUrl,
     required this.teamCode,
+    required this.battleId,
     required this.startTime,
+    this.preGeneratedQuestions,
   });
 
   @override
@@ -30,17 +35,36 @@ class _BattleScreenState extends State<BattleScreen> {
   Timer? timer;
   bool isLoading = true;
   String errorMessage = '';
+  final uid = FirebaseAuth.instance.currentUser!.uid;
 
   // Get reference to the custom Firestore database
-  final db = FirebaseFirestore.instanceFor(
-    app: Firebase.app(),
-    databaseId: "cote",
-  );
+  late final FirebaseFirestore db;
+  StreamSubscription<DocumentSnapshot>? _battleSubscription;
 
   @override
   void initState() {
     super.initState();
-    _generateQuizFromStoredText();
+    try {
+      db = FirebaseFirestore.instanceFor(
+        app: Firebase.app(),
+        databaseId: "cote",
+      );
+    } catch (e) {
+      db = FirebaseFirestore.instance;
+      print("Using default Firestore instance: $e");
+    }
+    
+    // Use pre-generated questions if available
+    if (widget.preGeneratedQuestions != null) {
+      setState(() {
+        questions = widget.preGeneratedQuestions!;
+        isLoading = false;
+      });
+      _startTimer();
+    } else {
+      // Fallback to original generation method
+      _generateQuizFromStoredText();
+    }
   }
 
   void _startTimer() {
@@ -156,133 +180,165 @@ $truncatedText
 
   List<Map<String, dynamic>> _parseMCQs(String raw) {
     final List<Map<String, dynamic>> output = [];
-    
-    final pattern = RegExp(r'Q\d+:|Question \d+:');
-    final matches = pattern.allMatches(raw).toList();
-    
-    if (matches.isEmpty) {
-      return _tryParseAsOneQuestion(raw);
-    }
-    
-    for (int i = 0; i < matches.length; i++) {
-      final startIndex = matches[i].start;
-      final endIndex = i < matches.length - 1 ? matches[i + 1].start : raw.length;
-      final block = raw.substring(startIndex, endIndex).trim();
+  
+    try {
+      // Split the raw text into potential question blocks
+      final questionBlocks = raw.split(RegExp(r'Q\d+:|Question \d+:'));
       
-      try {
-        final questionStartIndex = block.indexOf(':') + 1;
-        if (questionStartIndex <= 0) continue;
+      for (var block in questionBlocks.skip(1)) {  // Skip first empty element
+        final lines = block.trim().split('\n');
         
-        final lines = block.substring(questionStartIndex).trim().split('\n');
         if (lines.isEmpty) continue;
         
+        // Extract question
         final question = lines[0].trim();
-        List<String> options = [];
-        int correct = -1;
-
-        for (int j = 1; j < lines.length; j++) {
-          final line = lines[j].trim();
+        final options = <String>[];
+        int correctAnswerIndex = -1;
+        
+        // Parse options
+        for (int i = 1; i < lines.length; i++) {
+          final line = lines[i].trim();
           if (line.isEmpty) continue;
           
+          // Extract option text, handling various formats
           final optionMatch = RegExp(r'^([A-D])[\s:\.\)]+(.+?)(\s*$$CORRECT$$)?$').firstMatch(line);
           
           if (optionMatch != null) {
-            final text = optionMatch.group(2)!.trim();
-            options.add(text);
-            if (line.contains('[CORRECT]')) {
-              correct = options.length - 1;
+            final optionText = optionMatch.group(2)!.trim();
+            options.add(optionText);
+            
+            // Check for explicit correct answer marking
+            if (line.contains('[CORRECT]') || 
+                line.contains('(correct)') || 
+                line.contains('✓')) {
+              correctAnswerIndex = options.length - 1;
             }
           }
-        }
-
-        if (correct == -1 && options.length == 4) {
-          for (int j = 0; j < options.length; j++) {
-            if (options[j].contains('✓') || options[j].contains('*') || options[j].contains('(correct)')) {
-              options[j] = options[j].replaceAll('✓', '').replaceAll('*', '').replaceAll('(correct)', '').trim();
-              correct = j;
-              break;
-            }
-          }
+          
+          // Limit to 4 options
+          if (options.length == 4) break;
         }
         
-        if (correct == -1 && options.length == 4) {
-          correct = 0;
+        // If no explicit correct answer found, default to first option
+        if (correctAnswerIndex == -1 && options.length == 4) {
+          correctAnswerIndex = 0;
         }
-
-        if (options.length == 4 && question.isNotEmpty) {
+        
+        // Only add if we have a valid question and 4 options
+        if (question.isNotEmpty && 
+            options.length == 4 && 
+            correctAnswerIndex != -1) {
           output.add({
             'question': question,
             'options': options,
-            'correctAnswer': correct,
+            'correctAnswer': correctAnswerIndex,
           });
         }
-      } catch (e) {
-        print("Error parsing question block: $e");
-        continue;
       }
-    }
-
-    return output;
-  }
-  
-  List<Map<String, dynamic>> _tryParseAsOneQuestion(String raw) {
-    final lines = raw.split('\n').where((line) => line.trim().isNotEmpty).toList();
-    if (lines.isEmpty) return [];
-    
-    final question = lines[0].trim();
-    List<String> options = [];
-    int correct = -1;
-    
-    for (int i = 1; i < lines.length; i++) {
-      final line = lines[i].trim();
-      final optionMatch = RegExp(r'^([A-D])[\s:\.\)]+(.+?)(\s*$$CORRECT$$)?$').firstMatch(line);
-      
-      if (optionMatch != null) {
-        final text = optionMatch.group(2)!.trim();
-        options.add(text);
-        if (line.contains('[CORRECT]')) {
-          correct = options.length - 1;
-        }
-      }
+    } catch (e) {
+      print("Error parsing MCQs: $e");
     }
     
-    if (correct == -1 && options.length == 4) {
-      correct = 0;
-    }
-    
-    if (options.length == 4 && question.isNotEmpty) {
-      return [{
-        'question': question,
-        'options': options,
-        'correctAnswer': correct,
-      }];
-    }
-    
-    return [];
+    // If no questions parsed, return a default set of questions
+    return output.isNotEmpty 
+      ? output 
+      : [
+          {
+            'question': 'No questions could be generated',
+            'options': ['A', 'B', 'C', 'D'],
+            'correctAnswer': 0,
+          }
+        ];
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     timer?.cancel();
 
-    final results = questions.asMap().entries.map((entry) {
-      final index = entry.key;
-      final q = entry.value;
-      return {
-        'question': q['question'],
-        'options': q['options'],
-        'correctAnswer': q['correctAnswer'],
-        'selectedAnswer': selectedAnswers[index],
-      };
-    }).toList();
-
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ResultScreen(result: results),
-        ),
-      );
+    // Calculate score
+    int correctCount = 0;
+    for (int i = 0; i < questions.length; i++) {
+      if (selectedAnswers[i] == questions[i]['correctAnswer']) {
+        correctCount++;
+      }
     }
+    
+    // Update player data in the battle document
+    try {
+      final battleRef = db.collection('quizBattles').doc(widget.battleId);
+      
+      await battleRef.update({
+        'playerData.$uid': {
+          'score': correctCount,
+          'completedAt': FieldValue.serverTimestamp(),
+          'answers': selectedAnswers.map((key, value) => MapEntry(key.toString(), value)),
+          'submitted': true,  // Add a submitted flag
+        },
+      });
+
+      // Listen for opponent's submission
+      _waitForOpponentSubmission();
+    } catch (e) {
+      print("Error updating player data: $e");
+    }
+  }
+
+  void _waitForOpponentSubmission() {
+    final battleRef = db.collection('quizBattles').doc(widget.battleId);
+    
+    _battleSubscription = battleRef.snapshots().listen((snapshot) {
+      if (!snapshot.exists || !mounted) return;
+      
+      final data = snapshot.data()!;
+      final Map<String, dynamic> playerData = Map<String, dynamic>.from(data['playerData'] ?? {});
+      final List<String> players = List<String>.from(data['players'] ?? []);
+      
+      // Find opponent ID
+      String? opponentId;
+      for (final playerId in players) {
+        if (playerId != uid) {
+          opponentId = playerId;
+          break;
+        }
+      }
+      
+      // Check if both players have submitted
+      bool allSubmitted = players.every((playerId) => 
+        playerData[playerId] != null && 
+        playerData[playerId]['submitted'] == true
+      );
+      
+      if (allSubmitted) {
+        _battleSubscription?.cancel();
+        
+        // Prepare result data
+        final results = questions.asMap().entries.map((entry) {
+          final index = entry.key;
+          final q = entry.value;
+          return {
+            'question': q['question'],
+            'options': q['options'],
+            'correctAnswer': q['correctAnswer'],
+            'selectedAnswer': selectedAnswers[index],
+          };
+        }).toList();
+
+        // Navigate to ResultScreen
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ResultScreen(
+                result: results, 
+                battleId: widget.battleId,
+                uid: uid,
+              ),
+            ),
+          );
+        }
+      }
+    }, onError: (error) {
+      print("Error waiting for opponent submission: $error");
+    });
   }
 
   int max(int a, int b) => a > b ? a : b;
@@ -290,6 +346,7 @@ $truncatedText
   @override
   void dispose() {
     timer?.cancel();
+    _battleSubscription?.cancel();
     super.dispose();
   }
 
@@ -298,6 +355,7 @@ $truncatedText
     return Scaffold(
       appBar: AppBar(
         title: const Text("Quiz Battle"),
+        automaticallyImplyLeading: false,
         actions: [
           if (!isLoading)
             Padding(
