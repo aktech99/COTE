@@ -1,57 +1,112 @@
+// PDFViewerPage.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
 
 class PDFViewerPage extends StatefulWidget {
   final String url;
-  const PDFViewerPage({super.key, required this.url});
+  final File cachedFile;
+
+  const PDFViewerPage({
+    Key? key,
+    required this.url,
+    required this.cachedFile,
+  }) : super(key: key);
 
   @override
   State<PDFViewerPage> createState() => _PDFViewerPageState();
 }
 
 class _PDFViewerPageState extends State<PDFViewerPage> {
-  String? localPath;
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    downloadAndSavePDF();
-  }
-
-  Future<void> downloadAndSavePDF() async {
-    try {
-      final response = await http.get(Uri.parse(widget.url));
-      final bytes = response.bodyBytes;
-
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/temp.pdf');
-
-      await file.writeAsBytes(bytes);
-      setState(() {
-        localPath = file.path;
-        isLoading = false;
-      });
-    } catch (e) {
-      print("Error downloading PDF: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to open PDF")),
-      );
-    }
-  }
+  int currentPage = 0;
+  int? totalPages;
+  PDFViewController? pdfViewController;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("View PDF")),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : PDFView(
-              filePath: localPath!,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text("PDF Viewer"),
+      ),
+      body: Stack(
+        children: [
+          PDFView(
+            filePath: widget.cachedFile.path,
+            enableSwipe: true,
+            swipeHorizontal: true,
+            autoSpacing: true,
+            pageFling: true,
+            pageSnap: true,
+            defaultPage: currentPage,
+            onViewCreated: (PDFViewController controller) {
+              setState(() {
+                pdfViewController = controller;
+              });
+            },
+            onPageChanged: (int? page, int? total) {
+              setState(() {
+                currentPage = page ?? 0;
+                totalPages = total;
+              });
+            },
+            onRender: (pages) {
+              setState(() {
+                totalPages = pages;
+              });
+            },
+            onError: (error) {
+              print("Error loading PDF: $error");
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error loading PDF: $error'),
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            },
+          ),
+          if (isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
             ),
+        ],
+      ),
+      bottomNavigationBar: totalPages != null
+          ? Container(
+              padding: const EdgeInsets.all(16.0),
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios),
+                    onPressed: currentPage > 0
+                        ? () {
+                            pdfViewController?.setPage(currentPage - 1);
+                          }
+                        : null,
+                  ),
+                  Text(
+                    'Page ${currentPage + 1} of $totalPages',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios),
+                    onPressed: currentPage < (totalPages! - 1)
+                        ? () {
+                            pdfViewController?.setPage(currentPage + 1);
+                          }
+                        : null,
+                  ),
+                ],
+              ),
+            )
+          : null,
     );
   }
 }
